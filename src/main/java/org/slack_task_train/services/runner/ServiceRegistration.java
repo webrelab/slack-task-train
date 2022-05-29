@@ -1,6 +1,9 @@
 package org.slack_task_train.services.runner;
 
+import com.slack.api.methods.response.conversations.ConversationsListResponse;
 import com.slack.api.methods.response.views.ViewsPublishResponse;
+import com.slack.api.model.Conversation;
+import com.slack.api.model.ConversationType;
 import com.slack.api.model.User;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.SectionBlock;
@@ -14,31 +17,37 @@ import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.slack_task_train.SlackTaskTrainException;
 import org.slack_task_train.SlackTaskTrainApp;
-import org.slack_task_train.services.enums.SlackRoles;
-import org.slack_task_train.services.enums.StartSection;
+import org.slack_task_train.data.models.UserRolesModel;
+import org.slack_task_train.data.services.UserRolesService;
+import org.slack_task_train.services.ifaces.ICategory;
 import org.slack_task_train.services.ifaces.IModuleRegistration;
+import org.slack_task_train.services.ifaces.IRoles;
 import org.slack_task_train.services.users.SlackUsers;
-import org.slack_task_train.services.users.UserRolesRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Slf4j
-public
-class ServiceRegistration {
-    private final Map<IModuleRegistration, SlackRoles[]> buttons = new HashMap<>();
+@Component
+public class ServiceRegistration {
+    @Autowired
+    private Configurations config;
+    @Autowired
+    private UserRolesService userRolesService;
+    private final Map<IModuleRegistration, IRoles[]> buttons = new HashMap<>();
 
-    private ServiceRegistration() {}
-
-    public static void init() {
-        final ServiceRegistration serviceRegistration = new ServiceRegistration();
-        serviceRegistration.register();
-        serviceRegistration.registerInitCommand();
-        serviceRegistration.registerEmptyMessageChangeEvent();
+    public void init() {
+        register();
+        registerInitCommand();
+        registerEmptyMessageChangeEvent();
+        checkServiceChannel();
     }
 
-    public void register() {
+    private void register() {
         final Set<Class<? extends IModuleRegistration>> registrationClassSet =
-                new Reflections(new ConfigurationBuilder().forPackages("org.slack_task_train")).getSubTypesOf(
+                new Reflections(new ConfigurationBuilder().forPackages(config.getModulePackages().split(","))).getSubTypesOf(
                         IModuleRegistration.class);
         registrationClassSet.forEach(clazz -> {
             if (
@@ -57,16 +66,13 @@ class ServiceRegistration {
                 new Thread(instance.getDemon()::init, instance.getName()).start();
             } else {
                 buttons.put(instance, instance.acceptedRoles());
-                for (final SlackRoles role : instance.acceptedRoles()) {
-                    UserRolesRepository.getInstance().acceptModule(role, instance.getName());
-                }
                 instance.registerStartButton();
             }
 
         });
     }
 
-    public void registerInitCommand() {
+    private void registerInitCommand() {
         SlackTaskTrainApp.slackApp.getApp().event(AppHomeOpenedEvent.class, (req, ctx) -> {
               final View appHomeView = Views.view(v -> v
                     .type("home")
@@ -86,11 +92,11 @@ class ServiceRegistration {
 
     private List<LayoutBlock> getAcceptedBlocks(final String userId) {
         final User user = SlackUsers.getInstance().getUser(userId);
-        final EnumMap<StartSection, List<IModuleRegistration>> splitBySections = new EnumMap<>(StartSection.class);
+        final Map<ICategory, List<IModuleRegistration>> splitBySections = new HashMap<>();
 
         buttons.entrySet()
                .stream()
-               .filter(e -> UserRolesRepository.getInstance().hasAny(user, e.getValue()))
+               .filter(e -> isAdmin(userId) || matchRoles(userRolesService.getRolesByUserId(userId), e.getValue()))
                .map(Map.Entry::getKey)
                .forEach(sr -> {
                    if (!splitBySections.containsKey(sr.getStartSection())) {
@@ -105,7 +111,7 @@ class ServiceRegistration {
             v.sort(Comparator.comparing(IModuleRegistration::getName));
             blocks.add(
                     SectionBlock.builder()
-                                .text(MarkdownTextObject.builder().text("*" + k.getDesc() + "*").build())
+                                .text(MarkdownTextObject.builder().text("*" + k.getCategory() + "*").build())
                                 .build()
             );
             v.forEach(sr -> blocks.add(sr.getStartButton()));
@@ -114,7 +120,30 @@ class ServiceRegistration {
         return blocks;
     }
 
-    public void registerEmptyMessageChangeEvent() {
+    private boolean matchRoles(final List<UserRolesModel> userRolesModels, final IRoles[] expectedRoles) {
+        return userRolesModels.stream()
+                .map(UserRolesModel::getUserRole)
+                .anyMatch(r -> Stream.of(expectedRoles).map(IRoles::getRoleName).anyMatch(e -> e.equals(r)));
+    }
+
+    public boolean isAdmin(final String userId) {
+        final String[] adminUserIds = System.getenv("adminUserId").split(",");
+        if (adminUserIds.length == 0) {
+            return false;
+        }
+        Arrays.sort(adminUserIds);
+        return Arrays.binarySearch(adminUserIds, userId) > -1;
+    }
+
+    private void registerEmptyMessageChangeEvent() {
         SlackTaskTrainApp.slackApp.getApp().event(MessageChangedEvent.class, (req, ctx) -> ctx.ack());
+    }
+
+    // Проверка наличия сервисного канала для публикации сообщений бота и его создание при отсутствии
+    private void checkServiceChannel() {
+        final Optional<Conversation> conversation = SlackMethods.getChannelsByName(SlackTaskTrainApp.slackApp.getConfig().getServiceMessageChannel());
+        if (conversation.isEmpty()) {
+            SlackMethods.channelCreation(SlackTaskTrainApp.slackApp.getConfig().getServiceMessageChannel());
+        }
     }
 }

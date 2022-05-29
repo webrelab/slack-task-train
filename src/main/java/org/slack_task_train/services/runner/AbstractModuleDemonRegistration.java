@@ -1,9 +1,9 @@
 package org.slack_task_train.services.runner;
 
 import com.slack.api.model.block.LayoutBlock;
-import org.slack_task_train.services.enums.SlackRoles;
-import org.slack_task_train.services.enums.StartSection;
+import org.slack_task_train.services.ifaces.ICategory;
 import org.slack_task_train.services.ifaces.IModuleRegistration;
+import org.slack_task_train.services.ifaces.IRoles;
 
 public abstract class AbstractModuleDemonRegistration implements IModuleRegistration {
     @Override
@@ -17,12 +17,12 @@ public abstract class AbstractModuleDemonRegistration implements IModuleRegistra
     }
 
     @Override
-    public SlackRoles[] acceptedRoles() {
-        return new SlackRoles[0];
+    public IRoles[] acceptedRoles() {
+        return new IRoles[]{};
     }
 
     @Override
-    public StartSection getStartSection() {
+    public ICategory getStartSection() {
         return null;
     }
 

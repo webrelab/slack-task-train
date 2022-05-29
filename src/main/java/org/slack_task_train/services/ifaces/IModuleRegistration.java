@@ -1,8 +1,6 @@
 package org.slack_task_train.services.ifaces;
 
 import com.slack.api.model.block.LayoutBlock;
-import org.slack_task_train.services.enums.SlackRoles;
-import org.slack_task_train.services.enums.StartSection;
 
 public interface IModuleRegistration {
 
@@ -16,13 +14,13 @@ public interface IModuleRegistration {
     String getButtonId();
 
     // список ролей для которых этот модуль будет доступен
-    SlackRoles[] acceptedRoles();
+    IRoles[] acceptedRoles();
 
     // название модуля
     String getName();
 
     // название секции
-    StartSection getStartSection();
+    ICategory getStartSection();
 
     // для сервисов, которые должны стартовать автоматически с ботом
     boolean isDemon();

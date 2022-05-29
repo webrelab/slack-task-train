@@ -1,0 +1,19 @@
+slack-task-train:
+  # список пакетов в которых хранятся модули, перечисленные через запятую
+  module-packages: org.slack_task_train.example.modules
+  # список используемых ролей
+  role-class: org.slack_task_train.example.accessory.ExampleRoles
+  # название канала для публикации сервисных сообщений бота. Канал будет создан автоматически, если не существует
+  service-message-channel: slack-task-train
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: true
+    show-sql: true
+

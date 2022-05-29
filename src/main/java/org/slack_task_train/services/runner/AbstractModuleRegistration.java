@@ -15,8 +15,8 @@ import org.slack_task_train.SlackTaskTrainApp;
 import org.slack_task_train.services.ifaces.IDemon;
 import org.slack_task_train.services.ifaces.IModuleRegistration;
 import org.slack_task_train.services.ifaces.IView;
-import org.slack_task_train.services.views.AbstractView;
-import org.slack_task_train.services.views.Element;
+import org.slack_task_train.data.views.AbstractView;
+import org.slack_task_train.data.views.Element;
 
 import java.io.IOException;
 import java.util.UUID;

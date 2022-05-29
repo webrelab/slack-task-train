@@ -175,7 +175,7 @@ public final class SlackUsers {
     }
 
     private void updateCache(final User user) {
-        log.info("Добавлен пользователь {}", user.getProfile().getDisplayName());
+        log.info("Добавлен пользователь {} ID:{}", user.getProfile().getDisplayName(), user.getId());
         if (!users.containsKey(user.getId())) {
             users.put(user.getId(), user);
         }
