@@ -8,11 +8,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slack_task_train.SlackTaskTrainApp;
-import org.slack_task_train.data.views.AbstractView;
+import org.slack_task_train.services.ifaces.IDispatcher;
 import org.slack_task_train.services.ifaces.IFormField;
 import org.slack_task_train.services.ifaces.ISection;
 import org.slack_task_train.services.runner.AppRunner;
-import org.slack_task_train.data.views.base_fields.AbstractPlainTextField;
 import org.slack_task_train.example.accessory.PlainTextSection;
 
 import java.util.*;
@@ -21,14 +20,18 @@ class AbstractViewTest {
 
     private static final String NAME = "test name";
 
-    private final AbstractView abstractView;
+    private final AbstractView<TestDispatcher> abstractView;
+    private static class TestDispatcher implements IDispatcher {
+        @Override
+        public void dispatch() {}
+    }
 
     public AbstractViewTest() {
         AppRunner appRunner = Mockito.mock(AppRunner.class);
         App app = Mockito.spy(App.class);
         Mockito.when(appRunner.getApp()).thenReturn(app);
         SlackTaskTrainApp.slackApp = appRunner;
-        abstractView = new AbstractView() {
+        abstractView = new AbstractView<>() {
             public final PlainTextSection plainTextSection1 = new PlainTextSection();
             public final PlainTextSection plainTextSection2 = new PlainTextSection(
                     true,

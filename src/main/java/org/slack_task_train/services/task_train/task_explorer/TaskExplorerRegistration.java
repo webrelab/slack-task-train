@@ -1,15 +1,11 @@
-package org.slack_task_train.services.users;
+package org.slack_task_train.services.task_train.task_explorer;
 
 import com.slack.api.model.block.LayoutBlock;
 import org.slack_task_train.services.ifaces.ICategory;
 import org.slack_task_train.services.ifaces.IRoles;
 import org.slack_task_train.services.runner.AbstractModuleRegistration;
 
-public class UserRolesRegistration extends AbstractModuleRegistration<UserRolesView> {
-    @Override
-    public LayoutBlock getStartButton() {
-        return createButtonWithDescription("Форма для прямого назначения ролей пользователям");
-    }
+public class TaskExplorerRegistration extends AbstractModuleRegistration<TaskExplorerView> {
 
     @Override
     public IRoles[] acceptedRoles() {
@@ -17,8 +13,13 @@ public class UserRolesRegistration extends AbstractModuleRegistration<UserRolesV
     }
 
     @Override
+    public LayoutBlock getStartButton() {
+        return createButtonWithDescription("Поиск и остановка задач");
+    }
+
+    @Override
     public String getName() {
-        return "Назначение ролей";
+        return "Диспетчер задач";
     }
 
     @Override

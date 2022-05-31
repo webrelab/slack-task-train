@@ -22,9 +22,6 @@ public interface ITask {
     // действия после завершения задачи
     void postExecution();
 
-    // условие при котором задание должно начать выполняться
-    boolean taskCondition();
-
     // код, который выполняется если предыдущий запуск завершился со статусом FAILED
     void reExecuteTask();
 
@@ -54,8 +51,6 @@ public interface ITask {
 
     // возвращает название задания
     String getTaskName();
-
-    IView getView();
 
     String getUuid();
 

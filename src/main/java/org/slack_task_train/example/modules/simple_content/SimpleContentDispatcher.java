@@ -1,4 +1,4 @@
-package org.slack_task_train.example.modules;
+package org.slack_task_train.example.modules.simple_content;
 
 import lombok.SneakyThrows;
 import org.slack_task_train.SlackTaskTrainApp;

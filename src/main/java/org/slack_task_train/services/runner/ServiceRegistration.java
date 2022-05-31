@@ -1,9 +1,7 @@
 package org.slack_task_train.services.runner;
 
-import com.slack.api.methods.response.conversations.ConversationsListResponse;
 import com.slack.api.methods.response.views.ViewsPublishResponse;
 import com.slack.api.model.Conversation;
-import com.slack.api.model.ConversationType;
 import com.slack.api.model.User;
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.SectionBlock;
@@ -99,10 +97,10 @@ public class ServiceRegistration {
                .filter(e -> isAdmin(userId) || matchRoles(userRolesService.getRolesByUserId(userId), e.getValue()))
                .map(Map.Entry::getKey)
                .forEach(sr -> {
-                   if (!splitBySections.containsKey(sr.getStartSection())) {
-                       splitBySections.put(sr.getStartSection(), new ArrayList<>());
+                   if (!splitBySections.containsKey(sr.getCategory())) {
+                       splitBySections.put(sr.getCategory(), new ArrayList<>());
                    }
-                   splitBySections.get(sr.getStartSection()).add(sr);
+                   splitBySections.get(sr.getCategory()).add(sr);
                });
 
         final List<LayoutBlock> blocks = new ArrayList<>();

@@ -20,7 +20,7 @@ public interface IModuleRegistration {
     String getName();
 
     // название секции
-    ICategory getStartSection();
+    ICategory getCategory();
 
     // для сервисов, которые должны стартовать автоматически с ботом
     boolean isDemon();

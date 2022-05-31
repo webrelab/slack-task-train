@@ -6,7 +6,7 @@ import org.slack_task_train.data.views.sections.UserSelectSection;
 import org.slack_task_train.services.users.accessory.RoleSelectSection;
 
 @Getter
-public class UserRolesView extends AbstractView {
+public class UserRolesView extends AbstractView<UserRolesDispatcher> {
     private final UserSelectSection userSelectSection = new UserSelectSection();
     private final RoleSelectSection roleSelectSection = new RoleSelectSection(
             userSelectSection,
@@ -17,10 +17,5 @@ public class UserRolesView extends AbstractView {
     @Override
     public String getName() {
         return "Назначение ролей";
-    }
-
-    @Override
-    public void registerViewSubmit() {
-        registerViewSubmit(new UserRolesDispatcher(this));
     }
 }

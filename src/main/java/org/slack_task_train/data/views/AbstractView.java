@@ -20,6 +20,7 @@ import org.slack_task_train.data.views.base_fields.AbstractFormField;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public abstract class AbstractView extends Element implements IView {
+public abstract class AbstractView<T extends IDispatcher> extends Element implements IView {
     private final String id = UUID.randomUUID().toString();
     private String userId;
+
+    private T getDispatcherInstance() {
+        final ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
+        final Class<T> clazz = (Class<T>) type.getActualTypeArguments()[0];
+        try {
+            return clazz.getConstructor().newInstance();
+        } catch (final Throwable ignored) {}
+        try {
+            return clazz.getConstructor(getClass()).newInstance(this);
+        } catch (final Throwable ignored) {}
+        throw new SlackTaskTrainException("Не найден конструктор для класса " + clazz);
+    }
 
     @Override
     public View getView() {
@@ -105,6 +118,10 @@ public abstract class AbstractView extends Element implements IView {
     @Override
     public void registerViewUpdate() {
         getSections().forEach(this::registerViewUpdate);
+    }
+
+    public void registerViewSubmit() {
+        registerViewSubmit(getDispatcherInstance());
     }
 
     public void registerViewSubmit(final IDispatcher dispatcher) {

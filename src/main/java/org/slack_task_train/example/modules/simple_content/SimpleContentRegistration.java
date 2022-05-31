@@ -1,4 +1,4 @@
-package org.slack_task_train.example.modules;
+package org.slack_task_train.example.modules.simple_content;
 
 import com.slack.api.model.block.LayoutBlock;
 import org.slack_task_train.example.accessory.ExampleCategories;
@@ -7,15 +7,10 @@ import org.slack_task_train.services.ifaces.ICategory;
 import org.slack_task_train.services.ifaces.IRoles;
 import org.slack_task_train.services.runner.AbstractModuleRegistration;
 
-public class SimpleContentRegistration extends AbstractModuleRegistration {
+public class SimpleContentRegistration extends AbstractModuleRegistration<SimpleContentView> {
     @Override
     public LayoutBlock getStartButton() {
-        return getStartButton("Создать статью", "Создание новой статьи");
-    }
-
-    @Override
-    public void registerStartButton() {
-        registerStartButton(SimpleContentView::new);
+        return createButtonWithDescription("Создание новой статьи");
     }
 
     @Override
@@ -29,7 +24,7 @@ public class SimpleContentRegistration extends AbstractModuleRegistration {
     }
 
     @Override
-    public ICategory getStartSection() {
+    public ICategory getCategory() {
         return ExampleCategories.FIRST;
     }
 }

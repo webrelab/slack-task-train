@@ -9,7 +9,6 @@ import org.slack_task_train.services.runner.SlackMethods;
 import org.slack_task_train.services.timer.Timer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,59 +22,50 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.Stream;
 
 @Slf4j
-public class TaskGlue {
+public class TaskTrain {
     private final ConcurrentLinkedQueue<Dependent> queue = new ConcurrentLinkedQueue<>();
     private boolean stop;
     private final List<BooleanSupplier> queueStartConditions = new ArrayList<>();
     private final List<BooleanSupplier> queueCompleteConditions = new ArrayList<>();
     private final String name;
-    private String initiateByUser;
+    private final String initiateByUser;
     private boolean isActive;
     private final String uuid = UUID.randomUUID().toString();
     private final Map<Dependent, LongAdder> fatalErrorCounter = new HashMap<>();
     private Dependent currentDependent;
     private final boolean isProtected;
 
-    public TaskGlue(final String name, final String initiateByUser) {
+    public TaskTrain(final String name, final String initiateByUser) {
         this.name = name;
         this.initiateByUser = initiateByUser;
-        TaskExplorer.getInstance().registerTaskGlue(this);
+        TaskExplorer.getInstance().registerTaskTrain(this);
         isProtected = false;
     }
 
-    public TaskGlue(final String name, final String initiateByUser, final boolean isProtected) {
+    public TaskTrain(final String name, final String initiateByUser, final boolean isProtected) {
         this.name = name;
         this.initiateByUser = initiateByUser;
-        TaskExplorer.getInstance().registerTaskGlue(this);
+        TaskExplorer.getInstance().registerTaskTrain(this);
         this.isProtected = isProtected;
     }
 
-    public TaskGlue(final String name, final ITask dependentTask, final BooleanSupplier... queueCompleteConditions) {
-        final Dependent dependent = new Dependent(dependentTask);
-        queue.offer(dependent);
-        this.queueCompleteConditions.addAll(Arrays.asList(queueCompleteConditions));
-        this.name = name;
-        TaskExplorer.getInstance().registerTaskGlue(this);
-        isProtected = false;
-    }
-
-    public TaskGlue addQueueStartCondition(final BooleanSupplier queueStartCondition) {
+    public TaskTrain addQueueStartCondition(final BooleanSupplier queueStartCondition) {
         queueStartConditions.add(queueStartCondition);
         return this;
     }
 
-    public TaskGlue addQueueCompleteCondition(final BooleanSupplier queueCompleteCondition) {
+    public TaskTrain addQueueCompleteCondition(final BooleanSupplier queueCompleteCondition) {
         queueCompleteConditions.add(queueCompleteCondition);
         return this;
     }
 
-    public TaskGlue add(final ITask dependentTask) {
+    public TaskTrain add(final ITask dependentTask) {
         final Dependent dependent = new Dependent(dependentTask);
         queue.offer(dependent);
         return this;
     }
 
-    public TaskGlue add(
+    public TaskTrain add(
             final ITask dependentTask,
             final ITask sourceTask,
             final boolean isAndCondition,
@@ -117,15 +107,15 @@ public class TaskGlue {
     }
 
     private void executor() {
-        final long IDLE_CONVEYOR_MILLIS = 2000L;
+        final long IDLE_CONVEYOR_MILLIS = 1000L;
         // ждем, пока не наступит условие для старта очереди
-        while (!stop && !checkTaskGlueStartCondition()) {
+        while (!stop && !checkTaskTrainStartCondition()) {
             Utils.freeze(IDLE_CONVEYOR_MILLIS);
         }
         if (Objects.nonNull(initiateByUser) && !initiateByUser.isEmpty() && !stop) {
             SlackMethods.sendMessage("Очередь запущена '" + name + "'", initiateByUser);
         }
-        while (!stop && !checkTaskGlueEndCondition()) {
+        while (!stop && !checkTaskTrainEndCondition()) {
             currentDependent = queue.poll();
             if (Objects.isNull(currentDependent)) {
                 Utils.freeze(IDLE_CONVEYOR_MILLIS);
@@ -171,10 +161,8 @@ public class TaskGlue {
                         break;
                     case FAILED:
                         currentDependent.getDependent().saveLastUpdateTime();
-                        final String userId = Objects.nonNull(currentDependent.getDependent().getView()) ?
-                                currentDependent.getDependent().getView().getUserId() : initiateByUser;
                         final ManageFailedTasksButton manageFailedTasksButton = new ManageFailedTasksButton(this);
-                        manageFailedTasksButton.postMessage(currentDependent, userId);
+                        manageFailedTasksButton.postMessage(currentDependent, initiateByUser);
                         queue.offer(currentDependent);
                         final BooleanSupplier waitReaction = () -> currentDependent.getStatus() !=
                                                                     TaskExecutionStatus.FAILED || stop;
@@ -218,7 +206,7 @@ public class TaskGlue {
                 );
             }
         }
-        if (checkTaskGlueEndCondition()) {
+        if (checkTaskTrainEndCondition()) {
             log.info("Все задачи из сценария '{}' выполнены успешно", name);
             queue.forEach(task -> task.setStatus(TaskExecutionStatus.SUCCESS));
             if (Objects.nonNull(initiateByUser)) {
@@ -254,14 +242,14 @@ public class TaskGlue {
         return uuid;
     }
 
-    private boolean checkTaskGlueStartCondition() {
+    private boolean checkTaskTrainStartCondition() {
         if (queueStartConditions.isEmpty()) {
             return true;
         }
         return queueStartConditions.stream().allMatch(BooleanSupplier::getAsBoolean);
     }
 
-    private boolean checkTaskGlueEndCondition() {
+    private boolean checkTaskTrainEndCondition() {
         return queueCompleteConditions.stream().allMatch(BooleanSupplier::getAsBoolean);
     }
 
@@ -272,9 +260,15 @@ public class TaskGlue {
         return dependent.getSources().stream().allMatch(Source::checkCondition);
     }
 
+    /**
+     * Объект для хранения задачи, которая в текущий момент должна быть запущена при условии совокупного
+     * выполнения условий для запуска из всех объектов списка sources либо находится в статусе исполнения
+     */
     @Getter
     public static class Dependent {
+        // поле для хранения объекта задачи
         private final ITask dependent;
+        // текущий статус исполнения задачи
         private TaskExecutionStatus status = TaskExecutionStatus.NOT_STARTED;
         private final List<Source> sources = new ArrayList<>();
 

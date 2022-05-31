@@ -19,28 +19,38 @@ import org.slack_task_train.data.views.AbstractView;
 import org.slack_task_train.data.views.Element;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 @Slf4j
-public abstract class AbstractModuleRegistration extends Element implements IModuleRegistration {
+public abstract class AbstractModuleRegistration<T extends AbstractView> extends Element implements IModuleRegistration {
     public static final App APP = SlackTaskTrainApp.slackApp.getApp();
     public static final String BOT_TOKEN = AppRunner.SLACK_BOT_TOKEN;
     private final String buttonId = UUID.randomUUID().toString();
     private String userId;
+
+    private T getViewInstance() {
+        final ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
+        final Class<T> clazz = (Class<T>) type.getActualTypeArguments()[0];
+        try {
+            return clazz.getConstructor().newInstance();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public String getButtonId() {
         return buttonId;
     }
 
-    protected LayoutBlock getStartButton(
-            final String buttonText,
+    protected LayoutBlock createButtonWithDescription(
             final String description
     ) {
         final ButtonElement buttonElement = ButtonElement.builder()
                                                          .actionId(getButtonId())
-                                                         .text(asText(buttonText, false))
+                                                         .text(asText(getName(), false))
                                                          .build();
         return SectionBlock.builder()
                            .text(asText(
@@ -49,6 +59,10 @@ public abstract class AbstractModuleRegistration extends Element implements IMod
                            ))
                            .accessory(buttonElement)
                            .build();
+    }
+
+    public void registerStartButton() {
+        registerStartButton(this::getViewInstance);
     }
 
     protected void registerStartButton(final Supplier<AbstractView> view) {

@@ -22,7 +22,7 @@ public abstract class AbstractModuleDemonRegistration implements IModuleRegistra
     }
 
     @Override
-    public ICategory getStartSection() {
+    public ICategory getCategory() {
         return null;
     }
 

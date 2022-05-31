@@ -6,7 +6,7 @@ import java.util.Set;
 // Диспетчер задач. Хранит все созданные нитки TaskGlue и предоставляет доступ к удалению заданий из Main.QUEUE_EXECUTOR
 public final class TaskExplorer {
     private static final TaskExplorer INSTANCE = new TaskExplorer();
-    private final Set<TaskGlue> taskGlueList = new HashSet<>();
+    private final Set<TaskTrain> taskTrainList = new HashSet<>();
 
     private TaskExplorer() {
     }
@@ -15,13 +15,13 @@ public final class TaskExplorer {
         return INSTANCE;
     }
 
-    public void registerTaskGlue(final TaskGlue taskGlue) {
-        taskGlueList.add(taskGlue);
+    public void registerTaskTrain(final TaskTrain taskTrain) {
+        taskTrainList.add(taskTrain);
     }
 
-    public Set<TaskGlue> getTaskGlueList() {
-        taskGlueList.removeIf(TaskGlue::isComplete);
-        taskGlueList.removeIf(TaskGlue::isProtected);
-        return taskGlueList;
+    public Set<TaskTrain> getTaskTrainList() {
+        taskTrainList.removeIf(TaskTrain::isComplete);
+        taskTrainList.removeIf(TaskTrain::isProtected);
+        return taskTrainList;
     }
 }

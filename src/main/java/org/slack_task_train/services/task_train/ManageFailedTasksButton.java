@@ -20,15 +20,15 @@ import java.util.*;
 @Slf4j
 public class ManageFailedTasksButton extends Element {
     private final Map<ITask, String> taskToButtonIdMap = new HashMap<>();
-    private final Map<String, TaskGlue.Dependent> buttonIdToDependentMap = new HashMap<>();
+    private final Map<String, TaskTrain.Dependent> buttonIdToDependentMap = new HashMap<>();
     private final List<LayoutBlock> sectionBlocks = new ArrayList<>();
-    private final TaskGlue taskGlue;
+    private final TaskTrain taskTrain;
 
-    public ManageFailedTasksButton(final TaskGlue taskGlue) {
-        this.taskGlue = taskGlue;
+    public ManageFailedTasksButton(final TaskTrain taskTrain) {
+        this.taskTrain = taskTrain;
     }
 
-    public void postMessage(final TaskGlue.Dependent dependent, final String userId)
+    public void postMessage(final TaskTrain.Dependent dependent, final String userId)
             throws IOException, SlackApiException {
         addErrorMessage(dependent);
         addSkipStageButton(dependent);
@@ -45,7 +45,7 @@ public class ManageFailedTasksButton extends Element {
         }
     }
 
-    private void addErrorMessage(final TaskGlue.Dependent dependent) {
+    private void addErrorMessage(final TaskTrain.Dependent dependent) {
         final SectionBlock errorSection = SectionBlock
                 .builder()
                 .text(asMrkdn("*У нас есть проблема.* Задание '" +
@@ -55,7 +55,7 @@ public class ManageFailedTasksButton extends Element {
         sectionBlocks.add(errorSection);
     }
 
-    private void addSkipStageButton(final TaskGlue.Dependent dependent) {
+    private void addSkipStageButton(final TaskTrain.Dependent dependent) {
         final String skipUuid = UUID.randomUUID().toString();
         final ButtonElement button = ButtonElement
                 .builder()
@@ -74,12 +74,12 @@ public class ManageFailedTasksButton extends Element {
         sectionBlocks.add(skipStageSection);
         APP.blockAction(skipUuid, (req, ctx) -> {
             dependent.setStatus(TaskExecutionStatus.SUCCESS);
-            taskGlue.getQueue()
+            taskTrain.getQueue()
                     .forEach(d -> d
                             .getSources()
                             .stream()
                             .filter(s -> s.getSource().equals(dependent.getDependent()))
-                            .forEach(TaskGlue.Source::clearCondition)
+                            .forEach(TaskTrain.Source::clearCondition)
                     );
             final ChatUpdateResponse chatUpdateResponse = ctx.client().chatUpdate(u -> u
                     .blocks(new ArrayList<>())
@@ -114,7 +114,7 @@ public class ManageFailedTasksButton extends Element {
                 .build();
         sectionBlocks.add(skipStageSection);
         APP.blockAction(interruptUuid, (req, ctx) -> {
-            taskGlue.stop();
+            taskTrain.stop();
             final ChatUpdateResponse chatUpdateResponse = APP.client().chatUpdate(r -> r
                     .blocks(new ArrayList<>())
                     .text("*Исполнено! сценарий остановлен*. _У тебя осталось ещё два желания_ :male_mage:")
@@ -129,7 +129,7 @@ public class ManageFailedTasksButton extends Element {
         });
     }
 
-    private void collectSections(final TaskGlue.Dependent dependent) {
+    private void collectSections(final TaskTrain.Dependent dependent) {
         generateButtonId(dependent);
         final SectionBlock dependentSection = SectionBlock
                 .builder()
@@ -166,7 +166,7 @@ public class ManageFailedTasksButton extends Element {
             return ctx.ack();
         });
         dependent.getSources().forEach(source -> {
-            taskGlue.getQueue()
+            taskTrain.getQueue()
                     .stream()
                     .filter(d -> d.getDependent().equals(source.getSource()))
                     .findFirst()
@@ -182,17 +182,17 @@ public class ManageFailedTasksButton extends Element {
                             .build();
     }
 
-    private void generateButtonId(final TaskGlue.Dependent dependent) {
+    private void generateButtonId(final TaskTrain.Dependent dependent) {
         taskToButtonIdMap.put(dependent.getDependent(), UUID.randomUUID().toString());
         buttonIdToDependentMap.put(taskToButtonIdMap.get(dependent.getDependent()), dependent);
     }
 
-    private void resetTasksState(final TaskGlue.Dependent dependent) {
+    private void resetTasksState(final TaskTrain.Dependent dependent) {
         dependent.setStatus(TaskExecutionStatus.NOT_STARTED);
         if (dependent.getDependent() instanceof IReset) {
             ((IReset) dependent.getDependent()).reset();
         }
-        taskGlue.getQueue()
+        taskTrain.getQueue()
                 .stream()
                 .filter(d -> d.getSources().stream().anyMatch(s -> s.getSource().equals(dependent.getDependent())))
                 .forEach(this::resetTasksState);
