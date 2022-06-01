@@ -34,7 +34,7 @@ public class ManageFailedTasksButton extends Element {
         addSkipStageButton(dependent);
         collectSections(dependent);
         addInterruptScenarioButton();
-        final ChatPostMessageResponse response = APP.client().chatPostMessage(r -> r
+        final ChatPostMessageResponse response = APP.getClient().chatPostMessage(r -> r
                 .token(BOT_TOKEN)
                 .channel(userId)
                 .text("Выберите действия для продолжения работы")

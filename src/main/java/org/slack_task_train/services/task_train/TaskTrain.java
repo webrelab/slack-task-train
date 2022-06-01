@@ -135,6 +135,7 @@ public class TaskTrain {
                     case SUCCESS:
                         log.info("Выполнение задачи завершено {}", currentDependent.getDependent().getTaskName());
                         currentDependent.getDependent().postExecution();
+                        currentDependent.setPostExecutionDone(true);
                         currentDependent.getDependent().saveLastUpdateTime();
                         queue.offer(currentDependent);
                         break;
@@ -250,7 +251,8 @@ public class TaskTrain {
     }
 
     private boolean checkTaskTrainEndCondition() {
-        return queueCompleteConditions.stream().allMatch(BooleanSupplier::getAsBoolean);
+        return queueCompleteConditions.stream().allMatch(BooleanSupplier::getAsBoolean)
+                && queue.stream().allMatch(Dependent::isPostExecutionDone);
     }
 
     private boolean checkCondition(final Dependent dependent) {
@@ -272,6 +274,8 @@ public class TaskTrain {
         private TaskExecutionStatus status = TaskExecutionStatus.NOT_STARTED;
         private final List<Source> sources = new ArrayList<>();
 
+        private boolean isPostExecutionDone;
+
         Dependent(final ITask dependent) {
             this.dependent = dependent;
         }
@@ -282,6 +286,14 @@ public class TaskTrain {
 
         public void setStatus(final TaskExecutionStatus status) {
             this.status = status;
+        }
+
+        public void setPostExecutionDone(boolean postExecutionDone) {
+            isPostExecutionDone = postExecutionDone;
+        }
+
+        public boolean isPostExecutionDone() {
+            return isPostExecutionDone;
         }
     }
 

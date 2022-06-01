@@ -50,7 +50,7 @@ public abstract class AbstractTask implements ITask {
 
     @Override
     public Supplier<Long> getIdleDuration() {
-        throw new SlackTaskTrainException("Метод 'getIdleDuration' не поддерживается, требуется его переопределить");
+        throw new TaskTrainException("Метод 'getIdleDuration' не поддерживается, требуется его переопределить");
     }
 
     @Override
