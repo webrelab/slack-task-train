@@ -73,7 +73,7 @@ public class ManageFailedTasksButton extends Element {
                 .build();
         sectionBlocks.add(skipStageSection);
         APP.blockAction(skipUuid, (req, ctx) -> {
-            dependent.setStatus(TaskExecutionStatus.SUCCESS);
+            dependent.setPostExecutionDone(true);
             taskTrain.getQueue()
                     .forEach(d -> d
                             .getSources()
@@ -188,7 +188,8 @@ public class ManageFailedTasksButton extends Element {
     }
 
     private void resetTasksState(final TaskTrain.Dependent dependent) {
-        dependent.setStatus(TaskExecutionStatus.NOT_STARTED);
+        dependent.getDependent().setStatus(TaskExecutionStatus.NOT_STARTED);
+        dependent.setPostExecutionDone(false);
         if (dependent.getDependent() instanceof IReset) {
             ((IReset) dependent.getDependent()).reset();
         }

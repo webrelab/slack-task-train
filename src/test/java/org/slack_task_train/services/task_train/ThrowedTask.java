@@ -1,16 +1,11 @@
 package org.slack_task_train.services.task_train;
 
+import com.slack.api.methods.SlackApiException;
+import org.slack_task_train.SlackTaskTrainException;
 import org.slack_task_train.services.enums.TaskExecutionStatus;
 
-import java.util.function.Supplier;
-
-public class RepeatableTask extends AbstractTask {
-    private TaskExecutionStatus status = TaskExecutionStatus.NOT_STARTED;
-
-    @Override
-    public Supplier<Long> getIdleDuration() {
-        return () -> 100L;
-    }
+public class ThrowedTask extends AbstractTask {
+    TaskExecutionStatus status = TaskExecutionStatus.NOT_STARTED;
 
     @Override
     public TaskExecutionStatus getStatus() {
@@ -24,7 +19,7 @@ public class RepeatableTask extends AbstractTask {
 
     @Override
     public void executeTask() {
-        status = TaskExecutionStatus.REPEATABLE;
+        throw new SlackTaskTrainException("Исключение для тестирования");
     }
 
     @Override
@@ -44,6 +39,6 @@ public class RepeatableTask extends AbstractTask {
 
     @Override
     public String getTaskName() {
-        return "RepeatableTask";
+        return "Задача с ошибкой";
     }
 }
