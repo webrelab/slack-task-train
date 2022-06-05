@@ -1,9 +1,9 @@
 package org.slack_task_train.example.modules.simple_content;
 
 import lombok.SneakyThrows;
-import org.slack_task_train.SlackTaskTrainApp;
-import org.slack_task_train.services.ifaces.IDispatcher;
-import org.slack_task_train.services.runner.AppRunner;
+import org.slack_task_train.App;
+import org.slack_task_train.core.ifaces.IDispatcher;
+import org.slack_task_train.core.runner.AppRunner;
 
 public class SimpleContentDispatcher implements IDispatcher {
     private final SimpleContentView view;
@@ -15,7 +15,7 @@ public class SimpleContentDispatcher implements IDispatcher {
     @SneakyThrows
     @Override
     public void dispatch() {
-        SlackTaskTrainApp.slackApp.getApp().getClient().chatPostMessage(m -> m
+        App.slackApp.getApp().getClient().chatPostMessage(m -> m
                 .channel(view.getUserId())
                 .text(view.getPlainTextSection().getAccessory().getValue())
                 .token(AppRunner.SLACK_BOT_TOKEN)

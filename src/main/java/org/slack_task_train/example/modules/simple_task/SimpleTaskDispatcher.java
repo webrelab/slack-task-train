@@ -1,9 +1,9 @@
 package org.slack_task_train.example.modules.simple_task;
 
 import org.slack_task_train.example.modules.simple_task.accessories.SimpleWaitFirstTask;
-import org.slack_task_train.services.ifaces.IDispatcher;
-import org.slack_task_train.services.ifaces.ITask;
-import org.slack_task_train.services.task_train.TaskTrain;
+import org.slack_task_train.core.ifaces.IDispatcher;
+import org.slack_task_train.core.ifaces.ITask;
+import org.slack_task_train.core.task_train.TaskTrain;
 
 public class SimpleTaskDispatcher implements IDispatcher {
     private final SimpleTaskView view;

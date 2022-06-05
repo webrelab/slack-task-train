@@ -2,8 +2,8 @@ package org.slack_task_train.example.accessory;
 
 import com.slack.api.model.block.LayoutBlock;
 import com.slack.api.model.block.element.BlockElement;
-import org.slack_task_train.data.views.base_fields.AbstractPlainTextField;
-import org.slack_task_train.data.views.base_sections.AbstractSection;
+import org.slack_task_train.core.views.base_fields.AbstractPlainTextField;
+import org.slack_task_train.core.views.base_sections.AbstractSection;
 
 import java.util.function.BooleanSupplier;
 

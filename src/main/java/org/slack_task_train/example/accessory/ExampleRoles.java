@@ -1,6 +1,6 @@
 package org.slack_task_train.example.accessory;
 
-import org.slack_task_train.services.ifaces.IRoles;
+import org.slack_task_train.core.ifaces.IRoles;
 
 public enum ExampleRoles implements IRoles {
     USER(false),

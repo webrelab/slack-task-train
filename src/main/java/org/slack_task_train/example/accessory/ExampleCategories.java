@@ -1,14 +1,19 @@
 package org.slack_task_train.example.accessory;
 
-import org.slack_task_train.services.ifaces.ICategory;
+import org.slack_task_train.core.ifaces.ICategory;
 
 public enum ExampleCategories implements ICategory {
-    FIRST,
-    SECOND
+    EXAMPLE_CATEGORY("Примеры"),
     ;
+
+    private final String category;
+
+    ExampleCategories(String category) {
+        this.category = category;
+    }
 
     @Override
     public String getCategory() {
-        return this.name();
+        return category;
     }
 }

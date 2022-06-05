@@ -1,7 +1,7 @@
 package org.slack_task_train.example.modules.simple_content;
 
 import lombok.Getter;
-import org.slack_task_train.data.views.AbstractView;
+import org.slack_task_train.core.views.AbstractView;
 import org.slack_task_train.example.accessory.PlainTextSection;
 
 @Getter

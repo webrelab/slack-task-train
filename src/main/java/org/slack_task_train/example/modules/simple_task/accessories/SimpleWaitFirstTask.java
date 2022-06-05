@@ -1,9 +1,9 @@
 package org.slack_task_train.example.modules.simple_task.accessories;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slack_task_train.Utils;
-import org.slack_task_train.services.enums.TaskExecutionStatus;
-import org.slack_task_train.services.task_train.AbstractTask;
+import org.slack_task_train.core.Utils;
+import org.slack_task_train.core.enums.TaskExecutionStatus;
+import org.slack_task_train.core.task_train.AbstractTask;
 
 @Slf4j
 public class SimpleWaitFirstTask extends AbstractTask {
